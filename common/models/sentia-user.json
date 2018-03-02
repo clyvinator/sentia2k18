@@ -6,7 +6,32 @@
   "options": {
     "validateUpsert": true
   },
-  "properties": {},
+  "properties": {
+    "firstName": {
+      "type": "string",
+      "required": true
+    },
+    "LastName": {
+      "type": "string"
+    },
+    "mobile": {
+      "type": "string",
+      "required": true
+    },
+    "college": {
+      "type": "string",
+      "required": true
+    },
+    "branch": {
+      "type": "string"
+    },
+    "semester": {
+      "type": "number"
+    },
+    "dob": {
+      "type": "date"
+    }
+  },
   "validations": [],
   "relations": {},
   "acls": [],
