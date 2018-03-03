@@ -30,7 +30,7 @@
     },
     "dob": {
       "type": "date"
-    }
+    } 
   },
   "validations": [],
   "relations": {},

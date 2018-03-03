@@ -1,7 +1,7 @@
 {
   "ids": {
     "User": 1,
-    "AccessToken": 2,
+    "AccessToken": 18,
     "ACL": 1,
     "RoleMapping": 1,
     "Role": 1,
@@ -10,13 +10,13 @@
   "models": {
     "User": {},
     "AccessToken": {
-      "Ts5fjTsfu76ekZCiNWWusnyQGzmlSFQVTdrSFT3FTj8n2I73HU6fVJO6w3gtvTzw": "{\"id\":\"Ts5fjTsfu76ekZCiNWWusnyQGzmlSFQVTdrSFT3FTj8n2I73HU6fVJO6w3gtvTzw\",\"ttl\":1209600,\"created\":\"2018-03-02T18:38:13.506Z\",\"userId\":1}"
+      "qFacqv6we9ORhQPkc3e5CefipnEQqXXYNQHJVx6PiDxb4EK6wFL2LxtaR330Lvny": "{\"id\":\"qFacqv6we9ORhQPkc3e5CefipnEQqXXYNQHJVx6PiDxb4EK6wFL2LxtaR330Lvny\",\"ttl\":1209600,\"created\":\"2018-03-03T12:42:14.527Z\",\"userId\":1}"
     },
     "ACL": {},
     "RoleMapping": {},
     "Role": {},
     "SentiaUser": {
-      "1": "{\"firstName\":\"test\",\"LastName\":\"ing\",\"mobile\":\"9999999999\",\"college\":\"MITE\",\"branch\":\"cs\",\"semester\":3,\"dob\":\"2018-03-02T18:30:26.923Z\",\"username\":\"testing\",\"password\":\"$2a$10$6.aGr7KTHEG4l1mrws8Aw.phfM22PC99EBRVTTok4eZt5gbpid8i.\",\"email\":\"testing@test.com\",\"id\":1}"
+      "1": "{\"firstName\":\"test\",\"LastName\":\"ing\",\"mobile\":\"9999999999\",\"college\":\"MITE\",\"branch\":\"cs\",\"semester\":3,\"dob\":\"2018-03-02T18:30:26.923Z\",\"username\":\"testing\",\"password\":\"$2a$10$1p79FYtCcl5bU0mZ3WuaM.5T.icgUt8G4Qq/6sk0ieTFunq4NcFBq\",\"email\":\"testing@test.com\",\"id\":1}"
     }
   }
 }

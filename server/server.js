@@ -2,9 +2,12 @@
 
 var loopback = require('loopback');
 var boot = require('loopback-boot');
-
+var bodyParser = require('body-parser');
+var cookieParser = require('cookie-parser');
 var app = module.exports = loopback();
-
+app.use(cookieParser('grefcdx'));
+app.engine('html', require('ejs').renderFile);
+app.set('view engine', 'html');
 app.start = function() {
   // start the web server
   return app.listen(function() {
@@ -17,7 +20,12 @@ app.start = function() {
     }
   });
 };
-
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.json())
+app.use(loopback.token({
+    model: app.models.accessToken,
+    currentUserLiteral: 'me'
+}));
 // Bootstrap the application, configure models, datasources and middleware.
 // Sub-apps like REST API are mounted via boot scripts.
 boot(app, __dirname, function(err) {
