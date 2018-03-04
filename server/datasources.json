@@ -1,7 +1,13 @@
 {
-  "db": {
-    "name": "db",
-    "connector": "memory",
-    "file": "myData.json"
+  "mysql": {
+    "host": "35.154.52.251",
+    "port": 3306,
+    "database": "Sentia_2k18",
+    "password": "amazon",
+    "name": "mysql",
+    "user": "root",
+    "connector": "mysql",
+    "connectTimeout": 1200000,
+    "acquireTimeout": 1200000
   }
 }
