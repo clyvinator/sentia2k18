@@ -1,0 +1,33 @@
+{
+  "name": "SentiaEvent",
+  "plural": "SentiaEvents",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "mysql": {
+    "table": "Event"
+    },
+  "properties": {
+    "eventID": {
+      "type": "Number",
+      "id": true,
+      "required": true
+    },
+    "eventName": {
+      "type": "string",
+      "required": true,
+      "length": 50
+    },
+    "dayNum": {
+      "type": "string",
+      "required": true,
+      "length": 50
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}

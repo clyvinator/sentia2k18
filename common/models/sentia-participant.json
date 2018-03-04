@@ -1,0 +1,48 @@
+{
+  "name": "SentiaParticipant",
+  "plural": "SentiaParticipants",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "mysql": {
+    "table": "Participant"
+    },
+  "properties": {
+    "participantID": {
+      "type": "Number",
+      "id": true,
+      "required": true
+    },
+    "name": {
+      "type": "string",
+      "required": true,
+      "length": 50
+    },
+    "email": {
+      "type": "string",
+      "required": true,
+      "length": 50
+    },
+    "mobile": {
+      "type": "string",
+      "required": true,
+      "length": 10
+    },
+    "usn": {
+      "type": "string",
+      "required": true,
+      "length": 10
+    },
+    "college": {
+      "type": "string",
+      "required": true,
+      "length": 150
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}
