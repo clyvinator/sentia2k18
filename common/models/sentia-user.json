@@ -27,9 +27,6 @@
     },
     "email": {
       "type": "String"
-    },
-    "realm": {
-      "type": "String"
     }
   },
   "validations": [],

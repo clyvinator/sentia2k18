@@ -135,7 +135,7 @@ module.exports = function(SentiaGeneral) {
           if(userDetails && userDetails.college) {
             SentiaGeneral.find({
               where: {
-
+                college: userDetails.college
               }
             })
             .then(function (resultObj) {
