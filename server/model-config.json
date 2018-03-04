@@ -38,5 +38,17 @@
   "SentiaUser": {
     "dataSource": "db",
     "public": true
+  },
+  "SentiaParticipantEvent": {
+    "dataSource": "db",
+    "public": true
+    },
+    "SentiaEvent": {
+      "dataSource": "db",
+    "public": true
+    },
+    "SentiaParticipant": {
+      "dataSource": "db",
+    "public": true
   }
 }
