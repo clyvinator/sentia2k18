@@ -88,7 +88,7 @@ module.exports = function(SentiaParticipantEvent) {
 													if (eventObj) {
 														return eventObj.eventID
 													} else {
-														return callbackAuto("Invalid event");
+														//return callbackAuto("Invalid event");
 													}
 												})
 												.catch(function(error) {
