@@ -7,12 +7,9 @@
     "validateUpsert": true
   },
   "properties": {
-    "firstName": {
+    "name": {
       "type": "string",
       "required": true
-    },
-    "LastName": {
-      "type": "string"
     },
     "mobile": {
       "type": "string",
@@ -22,15 +19,18 @@
       "type": "string",
       "required": true
     },
-    "branch": {
+    "username": {
       "type": "string"
     },
-    "semester": {
+    "password": {
       "type": "number"
     },
-    "dob": {
-      "type": "date"
-    } 
+    "email": {
+      "type": "String"
+    },
+    "realm": {
+      "type": "String"
+    }
   },
   "validations": [],
   "relations": {},

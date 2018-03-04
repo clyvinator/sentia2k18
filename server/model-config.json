@@ -50,5 +50,9 @@
     "SentiaParticipant": {
       "dataSource": "mysql",
     "public": true
+  },
+  "SentiaGeneral": {
+    "dataSource": "mysql",
+    "public": true
   }
 }

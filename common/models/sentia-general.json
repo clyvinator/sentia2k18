@@ -1,0 +1,46 @@
+{
+  "name": "SentiaGeneral",
+  "plural": "SentiaGeneral",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "mysql": {
+    "table": "sentia-general"
+    },
+  "properties": {
+    "id": {
+      "type": "Number",
+      "required": true
+    },
+    "name": {
+      "type": "String",
+      "required": true
+    },
+    "usn": {
+      "type": "String",
+      "required": true
+    },
+    "mobileno": {
+      "type": "Number",
+      "required": true
+    },
+    "email": {
+      "type": "String",
+      "required": false
+    },
+    "event": {
+      "type": "Array",
+      "required": false
+    },
+    "college": {
+      "type": "String",
+      "required": false
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}
