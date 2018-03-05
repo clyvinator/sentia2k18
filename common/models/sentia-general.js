@@ -64,18 +64,16 @@ module.exports = function(SentiaGeneral) {
           },
           addGeneralData: ['findUserDetails', 'getEventsList', function(userDetails, callback3) {
             var eventArray = [];
-            var flag = false;
+            var flag = true;
             eventArray = _.map(userDetails.getEventsList, 'eventName');
             console.log('eventArray', eventArray);
             async.map(data.info, function(participantObj, callbackMap) {
               requiredKeysArray = ['name', 'usn', 'mobileno'];
-              for (var i = 0; i < eventArray.length; i++) {
-                for (var j = 0; j < participantObj.event.length; j++) {
-                  if (eventArray[i] === participantObj.event[j]) {
-                    log.info('EVENT EXISTS');
-                    flag = true;
+              participantObj.event = _.uniq(participantObj.event);
+              for (var i = 0; i < participantObj.event.length; i++) {
+                  if(eventArray.indexOf(participantObj.event[i]) < 0) {
+                    flag = false;
                   }
-                }
               }
               if (flag) {
                 utils.hasSufficientParameters(participantObj, requiredKeysArray, function(error, paramResult) {
@@ -92,7 +90,7 @@ module.exports = function(SentiaGeneral) {
                         if (generalDetails) {
                           var updateEventObj = {};
                           updateEventObj = generalDetails;
-                          generalDetails.event = participantObj.event;
+                          updateEventObj.event = participantObj.event.length? participantObj.event: null;
                           generalDetails.updateAttributes(updateEventObj, function(error, updateDetails) {
                             if (error) {
                               log.error(error);
@@ -107,7 +105,7 @@ module.exports = function(SentiaGeneral) {
                           createGeneralObj.name = participantObj.name;
                           createGeneralObj.usn = participantObj.usn;
                           createGeneralObj.mobileno = participantObj.mobileno;
-                          createGeneralObj.event = participantObj.event;
+                          createGeneralObj.event = participantObj.event.length? participantObj.event: null;
                           createGeneralObj.email = participantObj.email;
                           createGeneralObj.college = collegeName;
                           SentiaGeneral.create(createGeneralObj)
