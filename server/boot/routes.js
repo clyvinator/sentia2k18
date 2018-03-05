@@ -7,15 +7,12 @@ module.exports = function(app) {
       password: req.body.password
     }, 'SentiaUser', function(err, token) {
       if (err) {
-        res.send('<a href="/">YA FAILED</a>');
+        res.send({success: false, msg: "Incorrent login", data: {}});
         return;
       }
       res.cookie('access_token', token.id, { signed: true , maxAge: 300000 });
       // res.set('X-Access-Token', token.id);
-      res.render('token', {
-        email: req.body.email,
-        accessToken: token.id
-      });
+      res.send({userId: token.userId, access_token: token.id});
     });
   });
 

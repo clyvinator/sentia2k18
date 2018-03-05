@@ -55,7 +55,7 @@ module.exports = function(SentiaGeneral) {
                       if (generalDetails) {
                         var updateEventObj = {};
                         updateEventObj = generalDetails;
-                        generalDetails.event = participantObj.event;
+                        generalDetails.event = participantObj.events;
                         generalDetails.updateAttributes(updateEventObj, function(error, updateDetails) {
                           if (error) {
                             log.error(error);
@@ -107,10 +107,14 @@ module.exports = function(SentiaGeneral) {
           } else {
             log.info(result);
             return cb(null, {
+              success: true,
+              msg: "successfully saved",
+              data: {
                 "userId": data.userId,
                 "info": [
                   result.addGeneralData
                 ]
+              }
             });
           }
         });
@@ -148,6 +152,13 @@ module.exports = function(SentiaGeneral) {
               log.error(error);
               return cb(null, webError);
             });
+          }
+          else {
+            return cb(null, {
+              success: false,
+              msg: "Invalid id",
+              data: {}
+            })
           }
         })
         .catch(function (error) {

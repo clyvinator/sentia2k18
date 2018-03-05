@@ -8,7 +8,7 @@
   },
   "mysql": {
     "table": "sentia-general"
-    },
+  },
   "properties": {
     "id": {
       "type": "Number",
@@ -31,7 +31,7 @@
       "required": false
     },
     "event": {
-      "type": "Array",
+      "type": "array",
       "required": false
     },
     "college": {
@@ -41,6 +41,19 @@
   },
   "validations": [],
   "relations": {},
-  "acls": [],
+  "acls": [
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$unauthenticated",
+      "permission": "DENY"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW"
+    }
+  ],
   "methods": {}
 }
