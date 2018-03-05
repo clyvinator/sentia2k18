@@ -1,64 +1,67 @@
 var _ = require('lodash');
+var async = require('async');
 var utils = require('./utils');
-var log = require('bunyan').createLogger({name: "SentiaEvent"});
+var log = require('bunyan').createLogger({
+  name: "SentiaEvent"
+});
 var webError = {
   success: false,
   msg: "Something went wrong"
 }
 
 module.exports = function(SentiaEvent) {
-  SentiaEvent.addEvent = function (data, cb) {
-    var requiredKeysArray = ['eventName', 'dayNum'];
-    utils.hasSufficientParameters(data, requiredKeysArray, function (error, paramResult) {
-      if(error) {
-        log.error(error);
-        return cb(null, error);
-      }
-      else {
-        SentiaEvent.findOne({
-          where: {
-            eventName: data.eventName
-          },
-          fields: {
-            eventName: true,
-            dayNum: true
-          }
-        })
-        .then(function(event) {
-          if(event) {
-            return cb(null, {
-              success: false,
-              msg: "Event already exists",
-              data: event
-            });
-          }
-          else {
-            SentiaEvent.create(data)
-            .then(function(event) {
-              if(event) {
-                return cb(null, {
-                  success: true,
-                  msg: "Successfully added event",
-                  data: event
-                })
+  SentiaEvent.addEvent = function(data, cb) {
+    async.map(data.events, function(Obj, callbackMap) {
+      var requiredKeysArray = ['eventName', 'dayNum'];
+      utils.hasSufficientParameters(Obj, requiredKeysArray, function(error, paramResult) {
+        if (error) {
+          log.error(error);
+          return cb(null, error);
+        } else {
+          SentiaEvent.findOne({
+              where: {
+                eventName: Obj.eventName
+              },
+              fields: {
+                eventName: true,
+                dayNum: true
               }
-              else {
-                return cb(null, webError);
+            })
+            .then(function(event) {
+              if (event) {
+                return callbackMap(webError);
+              } else {
+                callbackMap(null, Obj);
               }
             })
             .catch(function(error) {
-              if(error) {
+              if (error) {
                 log.error(error);
-                return cb(null, webError);
+                return callbackMap(error);
               }
             });
-          }
+        }
+      });
+    }, function(error, mapResult) {
+      if (error) {
+        return cb(null, webError);
+      } else {
+        SentiaEvent.create(mapResult)
+        .then(function (result) {
+          log.info(result);
+          return cb(null, {
+            success: true,
+            msg: "Successfully created event",
+            data: result
+          });
         })
-        .catch(function(error) {
-          if(error) {
-            log.error(error);
-            return cb(null, webError);
-          }
+        .catch(function (error) {
+          log.error(error);
+          return cb(null, {
+            success: false,
+            msg: "Something went wrong",
+            data: {}
+          });
         });
       }
     });
@@ -66,113 +69,108 @@ module.exports = function(SentiaEvent) {
 
   SentiaEvent.updateEvent = function(data, cb) {
     var requiredKeysArray = ['eventName', 'dayNum'];
-    utils.hasSufficientParameters(data, requiredKeysArray, function (error, paramResult) {
-      if(error) {
+    utils.hasSufficientParameters(data, requiredKeysArray, function(error, paramResult) {
+      if (error) {
         log.error(error);
         return cb(null, error);
-      }
-      else {
+      } else {
         SentiaEvent.findOne({
-          where: {
-            eventName: data.eventName
-          }
-        })
-        .then(function(event) {
-          if(event) {
-            event.updateAttributes(data)
-            .then(function(updatedEvent) {
-              if(updatedEvent) {
-                return cb(null, {
-                  success: true,
-                  msg: "Successfully updated event",
-                  data: updatedEvent
+            where: {
+              eventName: data.eventName
+            }
+          })
+          .then(function(event) {
+            if (event) {
+              event.updateAttributes(data)
+                .then(function(updatedEvent) {
+                  if (updatedEvent) {
+                    return cb(null, {
+                      success: true,
+                      msg: "Successfully updated event",
+                      data: updatedEvent
+                    });
+                  } else {
+                    return cb(null, webError);
+                  }
+                })
+                .catch(function(error) {
+                  if (error) {
+                    log.error(error);
+                    return cb(null, webError);
+                  }
                 });
-              }
-              else {
-                return cb(null, webError);
-              }
-            })
-            .catch(function(error) {
-              if(error) {
-                log.error(error);
-                return cb(null, webError);
-              }
-            });
-          }
-          else {
-            return cb(null, {
-              success: false,
-              msg: "Event doesn't exist",
-              data: {}
-            })
-          }
-        })
-        .catch(function(error) {
-          if(error) {
-            log.error(error);
-            return cb(null, webError);
-          }
-        });
+            } else {
+              return cb(null, {
+                success: false,
+                msg: "Event doesn't exist",
+                data: {}
+              })
+            }
+          })
+          .catch(function(error) {
+            if (error) {
+              log.error(error);
+              return cb(null, webError);
+            }
+          });
       }
     });
   }
 
   SentiaEvent.getEventList = function(cb) {
     SentiaEvent.find({
-      where: {
-        eventName: {
-          neq: null
+        where: {
+          eventName: {
+            neq: null
+          }
         }
-      }
-    })
-    .then(function(eventList) {
-      return cb(null, {
-        success: true,
-        msg: "Successfully fetched event list",
-        data: eventList
+      })
+      .then(function(eventList) {
+        return cb(null, {
+          success: true,
+          msg: "Successfully fetched event list",
+          data: eventList
+        });
+      })
+      .catch(function(error) {
+        log.error(error);
+        return cb(null, webError);
       });
-    })
-    .catch(function(error) {
-      log.error(error);
-      return cb(null, webError);
-    });
   }
 
   SentiaEvent.getEventDetails = function(data, cb) {
     var requiredKeysArray = ['eventName'];
     utils.hasSufficientParameters(data, requiredKeysArray, function(error, paramResult) {
-      if(error) {
+      if (error) {
         log.error(error);
         return cb(null, error);
-      }
-      else {
+      } else {
         SentiaEvent.findOne({
-          where: {
-            eventName: data.eventName
-          }
-        })
-        .then(function(event) {
-          if(event) {
-            return cb(null, {
-              success: true,
-              msg: "Successfully fetched event details",
-              data: event
-            });
-          }
-          else {
-            return cb(null, {
-              success: false,
-              msg: "Event not found",
-              data: {}
-            })
-          }
-        })
-        .catch(function(error) {
-          if(error) {
-            log.error(error);
-            return cb(null, webError);
-          }
-        });
+            where: {
+              eventName: data.eventName
+            }
+          })
+          .then(function(event) {
+            if (event) {
+              return cb(null, {
+                success: true,
+                msg: "Successfully fetched event details",
+                data: event
+              });
+            } else {
+              return cb(null, {
+                success: false,
+                msg: "Event not found",
+                data: {}
+              })
+            }
+          })
+          .catch(function(error) {
+            if (error) {
+              log.error(error);
+              return cb(null, webError);
+            }
+          });
       }
     })
   }

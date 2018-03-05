@@ -12,7 +12,8 @@
   "properties": {
     "id": {
       "type": "Number",
-      "required": true
+      "id": true,
+      "required": false
     },
     "name": {
       "type": "String",
@@ -27,16 +28,13 @@
       "required": true
     },
     "email": {
-      "type": "String",
-      "required": false
+      "type": "String"
     },
     "event": {
-      "type": "Array",
-      "required": false
+      "type": "array"
     },
     "college": {
-      "type": "String",
-      "required": false
+      "type": "String"
     }
   },
   "validations": [],

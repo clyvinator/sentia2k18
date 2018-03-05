@@ -1,6 +1,6 @@
 {
   "name": "SentiaEvent",
-  "plural": "SentiaEvents",
+  "plural": "SentiaEvent",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
@@ -13,7 +13,7 @@
     "eventID": {
       "type": "Number",
       "id": true,
-      "required": true
+      "required": false
     },
     "eventName": {
       "type": "string",

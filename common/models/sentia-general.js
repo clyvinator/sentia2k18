@@ -2,7 +2,7 @@ var _ = require('lodash');
 var async = require('async');
 var utils = require('./utils');
 var log = require('bunyan').createLogger({
-  name: "SentiaEvent"
+  name: "SentiaDemo"
 });
 var webError = {
   success: false,
@@ -38,65 +38,111 @@ module.exports = function(SentiaGeneral) {
                 return callback1(error);
               });
           },
-          'addGeneralData': ['findUserDetails', function(userDetails, callback2) {
+          getEventsList: function(callback2) {
+            SentiaGeneral.app.models.SentiaEvent.find({
+                where: {
+                  eventName: {
+                    neq: null
+                  }
+                },
+                fields: {
+                  eventName: true
+                }
+              })
+              .then(function(eventList) {
+                if (!eventList) {
+                  log.info('NO EVENTS FOUND');
+                  callback2(true, eventList);
+                } else {
+                  callback2(null, eventList);
+                }
+              })
+              .catch(function(error) {
+                log.error(error);
+                return callback2(error);
+              });
+          },
+          addGeneralData: ['findUserDetails', 'getEventsList', function(userDetails, callback3) {
+            var eventArray = [];
+            var flag = false;
+            eventArray = _.map(userDetails.getEventsList, 'eventName');
+            console.log('eventArray', eventArray);
             async.map(data.info, function(participantObj, callbackMap) {
               requiredKeysArray = ['name', 'usn', 'mobileno'];
-              utils.hasSufficientParameters(participantObj, requiredKeysArray, function(error, paramResult) {
-                if (error) {
-                  log.error(error);
-                  return callbackMap(error);
-                } else {
-                  SentiaGeneral.findOne({
-                      where: {
-                        usn: participantObj.usn
-                      }
-                    })
-                    .then(function(generalDetails) {
-                      if (generalDetails) {
-                        var updateEventObj = {};
-                        updateEventObj = generalDetails;
-                        generalDetails.event = participantObj.event;
-                        generalDetails.updateAttributes(updateEventObj, function(error, updateDetails) {
-                          if (error) {
-                            log.error(error);
-                            return callbackMap(error);
-                          } else {
-                            log.info('Events successfully updated', updateDetails);
-                            return callbackMap(null, updateDetails);
-                          }
-                        });
-                      } else {
-                        var createGeneralObj = {};
-                        createGeneralObj.name = participantObj.name;
-                        createGeneralObj.usn = participantObj.usn;
-                        createGeneralObj.mobileno = participantObj.mobileno;
-                        createGeneralObj.event = participantObj.event;
-                        createGeneralObj.email = participantObj.email;
-                        createGeneralObj.college = collegeName;
-                        SentiaGeneral.create(createGeneralObj)
-                          .then(function(Obj) {
-                            log.info(Obj);
-                            return callbackMap(null, Obj);
-                          })
-                          .catch(function(error) {
-                            log.error(error);
-                            callbackMap(error);
-                          });
-                      }
-                    })
-                    .catch(function(error) {
-                      log.error(error);
-                      return callbackMap(error);
-                    });
+              for (var i = 0; i < eventArray.length; i++) {
+                for (var j = 0; j < participantObj.event.length; j++) {
+                  if (eventArray[i] === participantObj.event[j]) {
+                    log.info('EVENT EXISTS');
+                    flag = true;
+                  }
                 }
-              });
+              }
+              if (flag) {
+                utils.hasSufficientParameters(participantObj, requiredKeysArray, function(error, paramResult) {
+                  if (error) {
+                    log.error(error);
+                    return callbackMap(error);
+                  } else {
+                    SentiaGeneral.findOne({
+                        where: {
+                          usn: participantObj.usn
+                        }
+                      })
+                      .then(function(generalDetails) {
+                        if (generalDetails) {
+                          var updateEventObj = {};
+                          updateEventObj = generalDetails;
+                          generalDetails.event = participantObj.event;
+                          generalDetails.updateAttributes(updateEventObj, function(error, updateDetails) {
+                            if (error) {
+                              log.error(error);
+                              return callbackMap(error);
+                            } else {
+                              log.info('Events successfully updated', updateDetails);
+                              return callbackMap(null, updateDetails);
+                            }
+                          });
+                        } else {
+                          var createGeneralObj = {};
+                          createGeneralObj.name = participantObj.name;
+                          createGeneralObj.usn = participantObj.usn;
+                          createGeneralObj.mobileno = participantObj.mobileno;
+                          createGeneralObj.event = participantObj.event;
+                          createGeneralObj.email = participantObj.email;
+                          createGeneralObj.college = collegeName;
+                          SentiaGeneral.create(createGeneralObj)
+                            .then(function(Obj) {
+                              log.info(Obj);
+                              return callbackMap(null, Obj);
+                            })
+                            .catch(function(error) {
+                              log.error(error);
+                              callbackMap(error);
+                            });
+                        }
+                      })
+                      .catch(function(error) {
+                        log.error(error);
+                        return callbackMap(error);
+                      });
+                  }
+                });
+              }
+              if (!flag) {
+                log.error('INVALID EVENT');
+                return callbackMap(null, {
+                  success: false,
+                  msg: 'Invalid Event',
+                  data: participantObj.event
+                });
+              }
             }, function(error, mapResult) {
               if (error) {
                 log.error(error);
-                return callback2(error);
+                return callback3(error);
               } else {
                 log.info(mapResult);
-                return callback2(null, mapResult);
+                return callback3(null, mapResult);
               }
             });
           }]
@@ -107,10 +153,10 @@ module.exports = function(SentiaGeneral) {
           } else {
             log.info(result);
             return cb(null, {
-                "userId": data.userId,
-                "info": [
-                  result.addGeneralData
-                ]
+              userId: data.userId,
+              info: [
+                result.addGeneralData
+              ]
             });
           }
         });
@@ -118,44 +164,98 @@ module.exports = function(SentiaGeneral) {
     });
   }
 
-  SentiaGeneral.getGeneralData = function(data, cb) {
+  SentiaGeneral.getCollegeData = function(data, cb) {
     var requiredKeysArray = ['userId'];
-    utils.hasSufficientParameters(data, requiredKeysArray, function (error, paramResult) {
-      if(error) {
+    utils.hasSufficientParameters(data, requiredKeysArray, function(error, paramResult) {
+      if (error) {
         log.error(error);
         return cb(null, error);
-      }
-      else {
+      } else {
         SentiaGeneral.app.models.SentiaUser.findOne({
-          where: {
-            id: data.userId
-          }
-        })
-        .then(function (userDetails) {
-          if(userDetails && userDetails.college) {
-            SentiaGeneral.find({
-              where: {
-                college: userDetails.college
-              }
-            })
-            .then(function (resultObj) {
-              return cb(null, {
-                "userId": data.userId,
-                "info": resultObj
-              });
-            })
-            .catch(function (error) {
-              log.error(error);
-              return cb(null, webError);
-            });
-          }
-        })
-        .catch(function (error) {
-          log.error(error);
-          return cb(null,webError);
-        });
+            where: {
+              id: data.userId
+            }
+          })
+          .then(function(userDetails) {
+            if (userDetails && userDetails.college) {
+              SentiaGeneral.find({
+                  where: {
+                    college: userDetails.college
+                  }
+                })
+                .then(function(resultObj) {
+                  return cb(null, {
+                    count: resultObj.length,
+                    info: resultObj
+                  });
+                })
+                .catch(function(error) {
+                  log.error(error);
+                  return cb(null, webError);
+                });
+            }
+          })
+          .catch(function(error) {
+            log.error(error);
+            return cb(null, webError);
+          });
       }
     });
+  }
+
+  SentiaGeneral.getGeneralData = function(cb) {
+    SentiaGeneral.find({
+        where: {
+          usn: {
+            neq: null
+          }
+        }
+      })
+      .then(function(resultObj) {
+        if (resultObj) {
+          return cb(null, {
+            count: resultObj.length,
+            info: resultObj
+          });
+        } else {
+          return cb(null, {
+            success: true,
+            msg: "No participants found"
+          });
+        }
+      })
+      .catch(function(error) {
+        log.error(error);
+        return cb(null, webError);
+      });
+  }
+
+  SentiaGeneral.getSentiaUsers = function(cb) {
+    SentiaGeneral.app.models.SentiaUser.find({
+        where: {
+          email: {
+            neq: null
+          }
+        }
+      })
+      .then(function(userDetails) {
+        if (userDetails) {
+          return cb(null, {
+            count: resultObj.length,
+            info: resultObj
+          });
+        } else {
+          return cb(null, {
+            success: true,
+            msg: "No co-ordinators found",
+            count: 0
+          });
+        }
+      })
+      .catch(function(error) {
+        log.error(error);
+        return cb(null, webError);
+      });
   }
 
   SentiaGeneral.remoteMethod(
@@ -182,7 +282,21 @@ module.exports = function(SentiaGeneral) {
 
   SentiaGeneral.remoteMethod(
     'getGeneralData', {
-      description: 'get GeneralData',
+      description: 'get details of all the participants of Sentia',
+      returns: {
+        arg: 'result',
+        type: 'object',
+        root: true
+      },
+      http: {
+        verb: 'get'
+      }
+    }
+  );
+
+  SentiaGeneral.remoteMethod(
+    'getCollegeData', {
+      description: 'get details of all the participants of a particular college of Sentia',
       accepts: {
         arg: 'data',
         type: 'object',
@@ -201,4 +315,19 @@ module.exports = function(SentiaGeneral) {
       }
     }
   );
+
+  SentiaGeneral.remoteMethod(
+    'getSentiaUsers', {
+      description: 'get details of all the co-ordinators of various colleges of Sentia',
+      returns: {
+        arg: 'result',
+        type: 'object',
+        root: true
+      },
+      http: {
+        verb: 'get'
+      }
+    }
+  );
+
 }
