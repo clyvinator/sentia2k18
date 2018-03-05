@@ -239,8 +239,8 @@ module.exports = function(SentiaGeneral) {
       .then(function(userDetails) {
         if (userDetails) {
           return cb(null, {
-            count: resultObj.length,
-            info: resultObj
+            count: userDetails.length,
+            info: userDetails
           });
         } else {
           return cb(null, {

@@ -10,6 +10,9 @@ var dbBackupCron = new cronJob('*/1 * * * *', function() {
 		database: 'Sentia_2k18',
 		dest: './db-backups/backup_data_'+moment().format('DD MM YYYY, h:mm:ss a')+'.sql'
 	}, function(error) {
+		if(error) {
+			log.error(error);
+		}
 	});
 	log.info("CRON ran successfully");
 
