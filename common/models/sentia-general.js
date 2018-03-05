@@ -27,14 +27,13 @@ module.exports = function(SentiaGeneral) {
               .then(function(userDetails) {
                 if (userDetails && userDetails.college) {
                   collegeName = userDetails.college;
-                  callback1(null, userDetails);
+                  return callback1(null, userDetails);
                 } else {
-                  log.error('ERROR', error);
-                  return callback1(error);
+                  log.error('ERROR - college name not found in db', userDetails);
+                  return callback1('ERROR - college name not found in db');
                 }
               })
               .catch(function(error) {
-                log.error('ERROR', error);
                 return callback1(error);
               });
           },
@@ -79,7 +78,7 @@ module.exports = function(SentiaGeneral) {
                             return callbackMap(null, Obj);
                           })
                           .catch(function(error) {
-                            log.error(error);
+                           
                             callbackMap(error);
                           });
                       }
