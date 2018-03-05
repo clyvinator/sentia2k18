@@ -14,7 +14,8 @@
     ]
   },
   "User": {
-    "dataSource": "mysql"
+    "dataSource": "mysql",
+    "public": false
   },
   "AccessToken": {
     "dataSource": "mysql",
@@ -39,19 +40,11 @@
     "dataSource": "mysql",
     "public": true
   },
-  "SentiaParticipantEvent": {
+  "SentiaGeneral": {
     "dataSource": "mysql",
     "public": true
-    },
-    "SentiaEvent": {
-      "dataSource": "mysql",
-    "public": true
-    },
-    "SentiaParticipant": {
-      "dataSource": "mysql",
-    "public": true
   },
-  "SentiaGeneral": {
+  "SentiaEvent": {
     "dataSource": "mysql",
     "public": true
   }
