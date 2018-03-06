@@ -16,14 +16,19 @@
       "required": false
     },
     "eventName": {
-      "type": "string",
+      "type": "String",
       "required": true,
       "length": 50
     },
     "dayNum": {
-      "type": "string",
+      "type": "Number",
       "required": true,
       "length": 50
+    },
+    "dept": {
+      "type": "String",
+      "required": true,
+      "length": 4
     }
   },
   "validations": [],
