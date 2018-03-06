@@ -8,7 +8,7 @@
   },
   "mysql": {
     "table": "Event"
-    },
+  },
   "properties": {
     "eventID": {
       "type": "Number",
@@ -33,6 +33,19 @@
   },
   "validations": [],
   "relations": {},
-  "acls": [],
+  "acls": [
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$unauthenticated",
+      "permission": "DENY"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW"
+    }
+  ],
   "methods": {}
 }

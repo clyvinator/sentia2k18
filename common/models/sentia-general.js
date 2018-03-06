@@ -328,4 +328,20 @@ module.exports = function(SentiaGeneral) {
     }
   );
 
+    SentiaGeneral.disableRemoteMethodByName("create", true);
+    SentiaGeneral.disableRemoteMethodByName("upsert", true);
+    SentiaGeneral.disableRemoteMethodByName("updateAll", true);
+    SentiaGeneral.disableRemoteMethodByName("updateAttributes", false);
+    SentiaGeneral.disableRemoteMethodByName("find", true);
+    SentiaGeneral.disableRemoteMethodByName("findById", true);
+    SentiaGeneral.disableRemoteMethodByName("findOne", true);
+    SentiaGeneral.disableRemoteMethodByName("deleteById", true);
+    SentiaGeneral.disableRemoteMethodByName("confirm", true);
+    SentiaGeneral.disableRemoteMethodByName("count", true);
+    SentiaGeneral.disableRemoteMethodByName("exists", true);
+    SentiaGeneral.disableRemoteMethodByName("createChangeStream", true);
+    SentiaGeneral.disableRemoteMethodByName("replaceOrCreate", true);
+    SentiaGeneral.disableRemoteMethodByName("upsertWithWhere", true);
+
+
 }
