@@ -28,7 +28,7 @@
     "dept": {
       "type": "String",
       "required": true,
-      "length": 4
+      "length": 5
     }
   },
   "validations": [],
