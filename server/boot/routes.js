@@ -4,7 +4,8 @@ module.exports = function(app) {
     console.log("TESTING");
     app.models.SentiaUser.login({
       email: req.body.email,
-      password: req.body.password
+      password: req.body.password,
+      ttl: 7200
     }, 'SentiaUser', function(err, token) {
       if (err) {
         res.send({success: false, msg: "Incorrent login", data: {}});
