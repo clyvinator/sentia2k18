@@ -175,6 +175,34 @@ module.exports = function(SentiaEvent) {
     })
   }
 
+  SentiaEvent.getDeptEventList = function(data, cb) {
+    var requiredKeysArray = ['dept'];
+    utils.hasSufficientParameters(data, requiredKeysArray, function(error, paramResult) {
+      if(error) {
+        log.error(error);
+        return cb(null, error);
+      }
+      else {
+        SentiaEvent.find({
+          where: {
+            dept: data.dept
+          }
+        })
+        .then(function(eventListArray) {
+          return cb(null, {
+            success: true,
+            msg: "Dept. event list successfully found",
+            data: eventListArray
+          });
+        })
+        .catch(function(error) {
+          log.error(error);
+          return cb(null, webError);
+        });
+      }
+    });
+  }
+
 
   // SentiaEvent.remoteMethod(
   //   'addEvent', {
@@ -259,6 +287,28 @@ module.exports = function(SentiaEvent) {
     }
   );
 
+  SentiaEvent.remoteMethod(
+    'getDeptEventList', {
+      description: "returns events of a particular dept",
+      accepts: {
+        arg: 'data',
+        type: 'object',
+        required: true,
+        root: true,
+        http: {
+          source: 'body'
+        }
+      },
+      returns: {
+        arg: 'result',
+        type: 'object',
+        root: true
+      },
+      http: {
+        verb: 'post'
+      }
+    }
+  );
     SentiaEvent.disableRemoteMethodByName("create", true);
     SentiaEvent.disableRemoteMethodByName("upsert", true);
     SentiaEvent.disableRemoteMethodByName("updateAll", true);
