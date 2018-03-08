@@ -186,6 +186,13 @@ module.exports = function(SentiaGeneral) {
                   return cb(null, webError);
                 });
             }
+            else {
+              return cb(null, {
+                success: true,
+                msg: "No details found",
+                data: {}
+              });
+            }
           })
           .catch(function(error) {
             log.error(error);
