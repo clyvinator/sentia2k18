@@ -51,7 +51,6 @@ module.exports = function(SentiaGeneral) {
               })
               .then(function(eventList) {
                 if (!eventList) {
-                  log.info('NO EVENTS FOUND');
                   callback2(true, eventList);
                 } else {
                   callback2(null, eventList);
@@ -66,14 +65,13 @@ module.exports = function(SentiaGeneral) {
             var eventArray = [];
             var flag = true;
             eventArray = _.map(userDetails.getEventsList, 'eventName');
-            console.log('eventArray', eventArray);
             async.map(data.info, function(participantObj, callbackMap) {
               requiredKeysArray = ['name', 'usn', 'mobileno'];
               participantObj.event = _.uniq(participantObj.event);
               for (var i = 0; i < participantObj.event.length; i++) {
-                  if(eventArray.indexOf(participantObj.event[i]) < 0) {
-                    flag = false;
-                  }
+                if (eventArray.indexOf(participantObj.event[i]) < 0) {
+                  flag = false;
+                }
               }
               if (flag) {
                 utils.hasSufficientParameters(participantObj, requiredKeysArray, function(error, paramResult) {
@@ -90,13 +88,12 @@ module.exports = function(SentiaGeneral) {
                         if (generalDetails) {
                           var updateEventObj = {};
                           updateEventObj = generalDetails;
-                          updateEventObj.event = participantObj.event.length? participantObj.event: null;
+                          updateEventObj.event = participantObj.event.length ? participantObj.event : null;
                           generalDetails.updateAttributes(updateEventObj, function(error, updateDetails) {
                             if (error) {
                               log.error(error);
                               return callbackMap(error);
                             } else {
-                              log.info('Events successfully updated', updateDetails);
                               return callbackMap(null, updateDetails);
                             }
                           });
@@ -105,12 +102,11 @@ module.exports = function(SentiaGeneral) {
                           createGeneralObj.name = participantObj.name;
                           createGeneralObj.usn = participantObj.usn;
                           createGeneralObj.mobileno = participantObj.mobileno;
-                          createGeneralObj.event = participantObj.event.length? participantObj.event: null;
+                          createGeneralObj.event = participantObj.event.length ? participantObj.event : null;
                           createGeneralObj.email = participantObj.email;
                           createGeneralObj.college = collegeName;
                           SentiaGeneral.create(createGeneralObj)
                             .then(function(Obj) {
-                              log.info(Obj);
                               return callbackMap(null, Obj);
                             })
                             .catch(function(error) {
@@ -139,7 +135,6 @@ module.exports = function(SentiaGeneral) {
                 log.error(error);
                 return callback3(error);
               } else {
-                log.info(mapResult);
                 return callback3(null, mapResult);
               }
             });
@@ -149,7 +144,6 @@ module.exports = function(SentiaGeneral) {
             log.error(error);
             return cb(null, webError);
           } else {
-            log.info(result);
             return cb(null, {
               userId: data.userId,
               info: [
@@ -191,6 +185,13 @@ module.exports = function(SentiaGeneral) {
                   log.error(error);
                   return cb(null, webError);
                 });
+            }
+            else {
+              return cb(null, {
+                success: true,
+                msg: "No details found",
+                data: {}
+              });
             }
           })
           .catch(function(error) {
@@ -254,6 +255,99 @@ module.exports = function(SentiaGeneral) {
         log.error(error);
         return cb(null, webError);
       });
+  }
+
+  SentiaGeneral.getDeptEvents = function(data, cb) {
+    utils.hasSufficientParameters(data, ['dept'], function(error, paramResult) {
+      if (error) {
+        return cb(null, {
+          success: false,
+          msg: "Insufficient participants",
+          data: error.data
+        });
+      } else {
+        async.auto({
+            getEvents: function(callback1) {
+              SentiaGeneral.app.models.SentiaEvent.find({
+                  where: {
+                    dept: data.dept
+                  }
+                })
+                .then(function(events) {
+                  if (!events) {
+                    callback1(error);
+                  } else {
+                    return callback1(null, events);
+                  }
+                })
+                .catch(function(error) {
+                  log.error(error);
+                  return callback1(error);
+                });
+            },
+            getdeptList: ['getEvents', function(events, callback2) {
+              SentiaGeneral.find({
+                  where: {
+                    event: {
+                      neq: null
+                    }
+                  },
+                  fields: {
+                    name: true,
+                    usn: true,
+                    mobileno: true,
+                    college: true,
+                    event: true
+                  }
+                })
+                .then(function(eventDetails) {
+                  var Obj = {};
+                  async.map(eventDetails, function(deptEvents, callbackMap) {
+                    if (deptEvents.event !== null) {
+                      for (var i = 0; i < deptEvents.event.length; i++) {
+                        if (!(_.map(events.getEvents, 'eventName').indexOf(deptEvents.event[i]) < 0)) {
+                          Obj = deptEvents;
+                        }
+                      }
+                      if (_.isEmpty(Obj)) {
+                        callbackMap(null, null);
+                      } else {
+                        callbackMap(null, Obj);
+                      }
+                    } else {
+                      return callbackMap(error);
+                    }
+                  }, function(error, mapResult) {
+                    if (error) {
+                      return callback2(error);
+                    } else {
+                      return callback2(null, _.compact(_.uniq(mapResult)));
+                    }
+                  });
+                })
+                .catch(function(error) {
+                  return callback2(error);
+                });
+            }]
+          },
+          function(error, result) {
+            if (error) {
+              return cb(null, webError);
+            } else if (!result.getdeptList.length) {
+              return cb(null, {
+                success: false,
+                msg: "No participants found"
+              });
+            } else {
+              return cb(null, {
+                success: true,
+                msg: "successfully executed",
+                data: result.getdeptList
+              });
+            }
+          });
+      }
+    });
   }
 
   SentiaGeneral.remoteMethod(
@@ -328,20 +422,42 @@ module.exports = function(SentiaGeneral) {
     }
   );
 
-    SentiaGeneral.disableRemoteMethodByName("create", true);
-    SentiaGeneral.disableRemoteMethodByName("upsert", true);
-    SentiaGeneral.disableRemoteMethodByName("updateAll", true);
-    SentiaGeneral.disableRemoteMethodByName("updateAttributes", false);
-    SentiaGeneral.disableRemoteMethodByName("find", true);
-    SentiaGeneral.disableRemoteMethodByName("findById", true);
-    SentiaGeneral.disableRemoteMethodByName("findOne", true);
-    SentiaGeneral.disableRemoteMethodByName("deleteById", true);
-    SentiaGeneral.disableRemoteMethodByName("confirm", true);
-    SentiaGeneral.disableRemoteMethodByName("count", true);
-    SentiaGeneral.disableRemoteMethodByName("exists", true);
-    SentiaGeneral.disableRemoteMethodByName("createChangeStream", true);
-    SentiaGeneral.disableRemoteMethodByName("replaceOrCreate", true);
-    SentiaGeneral.disableRemoteMethodByName("upsertWithWhere", true);
+  SentiaGeneral.remoteMethod(
+    'getDeptEvents', {
+      description: 'get details of all the participants of a particular college of Sentia',
+      accepts: {
+        arg: 'data',
+        type: 'object',
+        required: true,
+        http: {
+          source: 'body'
+        }
+      },
+      returns: {
+        arg: 'result',
+        type: 'object',
+        root: true
+      },
+      http: {
+        verb: 'post'
+      }
+    }
+  );
+
+  SentiaGeneral.disableRemoteMethodByName("create", true);
+  SentiaGeneral.disableRemoteMethodByName("upsert", true);
+  SentiaGeneral.disableRemoteMethodByName("updateAll", true);
+  SentiaGeneral.disableRemoteMethodByName("updateAttributes", false);
+  SentiaGeneral.disableRemoteMethodByName("find", true);
+  SentiaGeneral.disableRemoteMethodByName("findById", true);
+  SentiaGeneral.disableRemoteMethodByName("findOne", true);
+  SentiaGeneral.disableRemoteMethodByName("deleteById", true);
+  SentiaGeneral.disableRemoteMethodByName("confirm", true);
+  SentiaGeneral.disableRemoteMethodByName("count", true);
+  SentiaGeneral.disableRemoteMethodByName("exists", true);
+  SentiaGeneral.disableRemoteMethodByName("createChangeStream", true);
+  SentiaGeneral.disableRemoteMethodByName("replaceOrCreate", true);
+  SentiaGeneral.disableRemoteMethodByName("upsertWithWhere", true);
 
 
 }
