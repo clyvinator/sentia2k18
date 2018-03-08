@@ -48,7 +48,6 @@ module.exports = function(SentiaEvent) {
   //     } else {
   //       SentiaEvent.create(mapResult)
   //       .then(function (result) {
-  //         log.info(result);
   //         return cb(null, {
   //           success: true,
   //           msg: "Successfully created event",
@@ -178,27 +177,26 @@ module.exports = function(SentiaEvent) {
   SentiaEvent.getDeptEventList = function(data, cb) {
     var requiredKeysArray = ['dept'];
     utils.hasSufficientParameters(data, requiredKeysArray, function(error, paramResult) {
-      if(error) {
+      if (error) {
         log.error(error);
         return cb(null, error);
-      }
-      else {
+      } else {
         SentiaEvent.find({
-          where: {
-            dept: data.dept
-          }
-        })
-        .then(function(eventListArray) {
-          return cb(null, {
-            success: true,
-            msg: "Dept. event list successfully found",
-            data: eventListArray
+            where: {
+              dept: data.dept
+            }
+          })
+          .then(function(eventListArray) {
+            return cb(null, {
+              success: true,
+              msg: "Dept. event list successfully found",
+              data: eventListArray
+            });
+          })
+          .catch(function(error) {
+            log.error(error);
+            return cb(null, webError);
           });
-        })
-        .catch(function(error) {
-          log.error(error);
-          return cb(null, webError);
-        });
       }
     });
   }
@@ -309,19 +307,19 @@ module.exports = function(SentiaEvent) {
       }
     }
   );
-    SentiaEvent.disableRemoteMethodByName("create", true);
-    SentiaEvent.disableRemoteMethodByName("upsert", true);
-    SentiaEvent.disableRemoteMethodByName("updateAll", true);
-    SentiaEvent.disableRemoteMethodByName("updateAttributes", false);
-    SentiaEvent.disableRemoteMethodByName("find", true);
-    SentiaEvent.disableRemoteMethodByName("findById", true);
-    SentiaEvent.disableRemoteMethodByName("findOne", true);
-    SentiaEvent.disableRemoteMethodByName("deleteById", true);
-    SentiaEvent.disableRemoteMethodByName("confirm", true);
-    SentiaEvent.disableRemoteMethodByName("count", true);
-    SentiaEvent.disableRemoteMethodByName("exists", true);
-    SentiaEvent.disableRemoteMethodByName("createChangeStream", true);
-    SentiaEvent.disableRemoteMethodByName("replaceOrCreate", true);
-    SentiaEvent.disableRemoteMethodByName("upsertWithWhere", true);
+  SentiaEvent.disableRemoteMethodByName("create", true);
+  SentiaEvent.disableRemoteMethodByName("upsert", true);
+  SentiaEvent.disableRemoteMethodByName("updateAll", true);
+  SentiaEvent.disableRemoteMethodByName("updateAttributes", false);
+  SentiaEvent.disableRemoteMethodByName("find", true);
+  SentiaEvent.disableRemoteMethodByName("findById", true);
+  SentiaEvent.disableRemoteMethodByName("findOne", true);
+  SentiaEvent.disableRemoteMethodByName("deleteById", true);
+  SentiaEvent.disableRemoteMethodByName("confirm", true);
+  SentiaEvent.disableRemoteMethodByName("count", true);
+  SentiaEvent.disableRemoteMethodByName("exists", true);
+  SentiaEvent.disableRemoteMethodByName("createChangeStream", true);
+  SentiaEvent.disableRemoteMethodByName("replaceOrCreate", true);
+  SentiaEvent.disableRemoteMethodByName("upsertWithWhere", true);
 
 };

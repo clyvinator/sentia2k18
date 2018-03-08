@@ -1,7 +1,5 @@
 module.exports = function(app) {
   app.post('/login', function(req, res) {
-    console.log(req);
-    console.log("TESTING");
     app.models.SentiaUser.login({
       email: req.body.email,
       password: req.body.password,
