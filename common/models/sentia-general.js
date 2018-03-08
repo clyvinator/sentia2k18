@@ -424,7 +424,7 @@ module.exports = function(SentiaGeneral) {
 
   SentiaGeneral.remoteMethod(
     'getDeptEvents', {
-      description: 'get details of all the participants of a particular college of Sentia',
+      description: 'get details of all the participants participating in the events organised by the respective dept',
       accepts: {
         arg: 'data',
         type: 'object',
