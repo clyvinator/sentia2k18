@@ -88,6 +88,8 @@ module.exports = function(SentiaGeneral) {
                         if (generalDetails) {
                           var updateEventObj = {};
                           updateEventObj = generalDetails;
+                          updateEventObj.name = participantObj.name;
+                          updateEventObj.mobileno = participantObj.mobileno;
                           updateEventObj.event = participantObj.event.length ? participantObj.event : null;
                           generalDetails.updateAttributes(updateEventObj, function(error, updateDetails) {
                             if (error) {
