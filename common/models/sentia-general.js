@@ -66,7 +66,6 @@ module.exports = function(SentiaGeneral) {
             var flag = true;
             eventArray = _.map(userDetails.getEventsList, 'eventName');
             async.map(data.info, function(participantObj, callbackMap) {
-              requiredKeysArray = ['name', 'usn', 'mobileno'];
               participantObj.event = _.uniq(participantObj.event);
               for (var i = 0; i < participantObj.event.length; i++) {
                 if (eventArray.indexOf(participantObj.event[i]) < 0) {
@@ -74,6 +73,7 @@ module.exports = function(SentiaGeneral) {
                 }
               }
               if (flag) {
+                requiredKeysArray = ['name', 'usn', 'mobileno'];
                 utils.hasSufficientParameters(participantObj, requiredKeysArray, function(error, paramResult) {
                   if (error) {
                     log.error(error);
@@ -157,12 +157,74 @@ module.exports = function(SentiaGeneral) {
   }
 
   SentiaGeneral.getCollegeData = function(data, cb) {
-    var requiredKeysArray = ['userId'];
-    utils.hasSufficientParameters(data, requiredKeysArray, function(error, paramResult) {
-      if (error) {
-        log.error(error);
-        return cb(null, error);
-      } else {
+    if(data.userId && data.event) {
+      SentiaGeneral.app.models.SentiaUser.findOne({
+          where: {
+            id: data.userId
+          }
+        })
+        .then(function(userDetails) {
+          if (userDetails && userDetails.college) {
+            SentiaGeneral.find({
+              where: {
+                college: userDetails.college,
+                event: {
+                  neq: null
+                }
+              }
+            })
+            .then(function (eventDetails) {
+              async.map(eventDetails, function (inputObj, callbackMap) {
+                for (var i = 0; i < inputObj.event.length; i++) {
+                  if(inputObj.event[i].indexOf(data.event) >= 0) {
+                    return callbackMap(null, inputObj);
+                  }
+                }
+                callbackMap(null);
+              }, function (error, mapResult) {
+                if(error) {
+                  log.error(error);
+                  return cb(null, {
+                    success: false,
+                    msg: "Something went wrong 1"
+                  });
+                }
+                else if (!mapResult.length) {
+                  return cb(null, {
+                    success: true,
+                    msg: "No participants for the event"
+                  });
+                }
+                else {
+                  return cb(null, {
+                    success: true,
+                    msg: "The participants for the event are",
+                    data: _.compact(_.uniq(mapResult))
+                  });
+                }
+              });
+            })
+            .catch(function (error) {
+              return cb(null, {
+                success: false,
+                msg: "Something went wrong"
+              });
+            });
+          }
+          else {
+            return cb(null, {
+              success: true,
+              msg: "No details found",
+              data: {}
+            });
+          }
+        })
+        .catch(function(error) {
+          log.error(error);
+          return cb(null, webError);
+        });
+    }
+    else if(data.userId && !data.event) {
         SentiaGeneral.app.models.SentiaUser.findOne({
             where: {
               id: data.userId
@@ -198,8 +260,66 @@ module.exports = function(SentiaGeneral) {
             log.error(error);
             return cb(null, webError);
           });
-      }
-    });
+        }
+    else if (data.event && !data.userId) {
+      SentiaGeneral.find({
+        where: {
+          event: {
+            neq: null
+          }
+        }
+      })
+      .then(function (eventDetails) {
+        async.map(eventDetails, function (inputObj, callbackMap) {
+          for (var i = 0; i < inputObj.event.length; i++) {
+            if(inputObj.event[i].indexOf(data.event) >= 0) {
+              return callbackMap(null, inputObj);
+            }
+          }
+          callbackMap(null);
+        }, function (error, mapResult) {
+          if(error) {
+            log.error(error);
+            return cb(null, {
+              success: false,
+              msg: "Something went wrong 1"
+            });
+          }
+          else if (!mapResult.length) {
+            return cb(null, {
+              success: true,
+              msg: "No participants for the event"
+            });
+          }
+          else {
+            return cb(null, {
+              success: true,
+              msg: "The participants for the event are",
+              data: _.compact(_.uniq(mapResult))
+            });
+          }
+        });
+      })
+      .catch(function (error) {
+        return cb(null, {
+          success: false,
+          msg: "Something went wrong"
+        });
+      });
+    }
+    else if (!data.userId && !data.event) {
+      return cb(null, {
+        success: false,
+        msg: "Insufficient parameters",
+        data: data
+      });
+    }
+    else {
+      return cb(null, {
+        success: false,
+        msg: "Something went wrong"
+      });
+    }
   }
 
   SentiaGeneral.getGeneralData = function(cb) {
