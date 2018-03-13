@@ -2,7 +2,7 @@ var _ = require('lodash');
 var async = require('async');
 var utils = require('./utils');
 var log = require('bunyan').createLogger({
-  name: "SentiaDemo"
+  name: "SentiaGeneral"
 });
 var webError = {
   success: false,
@@ -65,12 +65,11 @@ module.exports = function(SentiaGeneral) {
             var eventArray = [];
             var flag = true;
             eventArray = _.map(userDetails.getEventsList, 'eventName');
+            // console.log('eventArray', eventArray);
             async.map(data.info, function(participantObj, callbackMap) {
-              participantObj.event = _.uniq(participantObj.event);
-              for (var i = 0; i < participantObj.event.length; i++) {
-                if (eventArray.indexOf(participantObj.event[i]) < 0) {
-                  flag = false;
-                }
+              console.log('participantObj', participantObj);
+              if (eventArray.indexOf(participantObj.event) < 0) {
+                flag = false;
               }
               if (flag) {
                 requiredKeysArray = ['name', 'usn', 'mobileno'];
@@ -81,16 +80,17 @@ module.exports = function(SentiaGeneral) {
                   } else {
                     SentiaGeneral.findOne({
                         where: {
+                          event: participantObj.event,
                           usn: participantObj.usn
                         }
                       })
                       .then(function(generalDetails) {
+                        console.log('participantObj', participantObj);
+                        console.log('generalDetails', generalDetails);
                         if (generalDetails) {
                           var updateEventObj = {};
                           updateEventObj = generalDetails;
-                          updateEventObj.name = participantObj.name;
-                          updateEventObj.mobileno = participantObj.mobileno;
-                          updateEventObj.event = participantObj.event.length ? participantObj.event : null;
+                          console.log('updateEventObj', updateEventObj);
                           generalDetails.updateAttributes(updateEventObj, function(error, updateDetails) {
                             if (error) {
                               log.error(error);
@@ -101,12 +101,16 @@ module.exports = function(SentiaGeneral) {
                           });
                         } else {
                           var createGeneralObj = {};
+                          if (participantObj.Archived) {
+                            createGeneralObj.Archived = 1;
+                          }
                           createGeneralObj.name = participantObj.name;
                           createGeneralObj.usn = participantObj.usn;
                           createGeneralObj.mobileno = participantObj.mobileno;
-                          createGeneralObj.event = participantObj.event.length ? participantObj.event : null;
+                          createGeneralObj.event = participantObj.event;
                           createGeneralObj.email = participantObj.email;
                           createGeneralObj.college = collegeName;
+                          console.log('createGeneralObj 2', createGeneralObj);
                           SentiaGeneral.create(createGeneralObj)
                             .then(function(Obj) {
                               return callbackMap(null, Obj);
@@ -123,8 +127,7 @@ module.exports = function(SentiaGeneral) {
                       });
                   }
                 });
-              }
-              if (!flag) {
+              } else if (!flag) {
                 log.error('INVALID EVENT');
                 return callbackMap(null, {
                   success: false,
@@ -159,169 +162,211 @@ module.exports = function(SentiaGeneral) {
   }
 
   SentiaGeneral.getCollegeData = function(data, cb) {
-    if(data.userId && data.event) {
-      SentiaGeneral.app.models.SentiaUser.findOne({
-          where: {
-            id: data.userId
-          }
-        })
-        .then(function(userDetails) {
-          if (userDetails && userDetails.college) {
-            SentiaGeneral.find({
-              where: {
-                college: userDetails.college,
-                event: {
-                  neq: null
-                }
-              }
-            })
-            .then(function (eventDetails) {
-              async.map(eventDetails, function (inputObj, callbackMap) {
-                for (var i = 0; i < inputObj.event.length; i++) {
-                  if(inputObj.event[i].indexOf(data.event) >= 0) {
-                    return callbackMap(null, inputObj);
-                  }
-                }
-                callbackMap(null);
-              }, function (error, mapResult) {
-                if(error) {
-                  log.error(error);
-                  return cb(null, {
-                    success: false,
-                    msg: "Something went wrong 1"
-                  });
-                }
-                else if (!mapResult.length) {
-                  return cb(null, {
-                    success: true,
-                    msg: "No participants for the event"
-                  });
-                }
-                else {
-                  return cb(null, {
-                    success: true,
-                    msg: "The participants for the event are",
-                    data: _.compact(_.uniq(mapResult))
-                  });
-                }
-              });
-            })
-            .catch(function (error) {
-              return cb(null, {
-                success: false,
-                msg: "Something went wrong"
-              });
-            });
-          }
-          else {
-            return cb(null, {
-              success: true,
-              msg: "No details found",
-              data: {}
-            });
-          }
-        })
-        .catch(function(error) {
-          log.error(error);
-          return cb(null, webError);
-        });
-    }
-    else if(data.userId && !data.event) {
-        SentiaGeneral.app.models.SentiaUser.findOne({
-            where: {
-              id: data.userId
-            }
-          })
-          .then(function(userDetails) {
-            if (userDetails && userDetails.college) {
-              SentiaGeneral.find({
-                  where: {
-                    college: userDetails.college
-                  }
-                })
-                .then(function(resultObj) {
-                  return cb(null, {
-                    count: resultObj.length,
-                    info: resultObj
-                  });
-                })
-                .catch(function(error) {
-                  log.error(error);
-                  return cb(null, webError);
-                });
-            }
-            else {
-              return cb(null, {
-                success: true,
-                msg: "No details found",
-                data: {}
-              });
-            }
-          })
-          .catch(function(error) {
-            log.error(error);
-            return cb(null, webError);
-          });
-        }
-    else if (data.event && !data.userId) {
-      SentiaGeneral.find({
-        where: {
-          event: {
-            neq: null
-          }
-        }
-      })
-      .then(function (eventDetails) {
-        async.map(eventDetails, function (inputObj, callbackMap) {
-          for (var i = 0; i < inputObj.event.length; i++) {
-            if(inputObj.event[i].indexOf(data.event) >= 0) {
-              return callbackMap(null, inputObj);
-            }
-          }
-          callbackMap(null);
-        }, function (error, mapResult) {
-          if(error) {
-            log.error(error);
-            return cb(null, {
-              success: false,
-              msg: "Something went wrong 1"
-            });
-          }
-          else if (!mapResult.length) {
-            return cb(null, {
-              success: true,
-              msg: "No participants for the event"
-            });
-          }
-          else {
-            return cb(null, {
-              success: true,
-              msg: "The participants for the event are",
-              data: _.compact(_.uniq(mapResult))
-            });
-          }
-        });
-      })
-      .catch(function (error) {
+    var requiredKeysArray = ['userId'];
+    utils.hasSufficientParameters(data, requiredKeysArray, function (error, paramResult) {
+      if(error) {
         return cb(null, {
           success: false,
-          msg: "Something went wrong"
+          msg: "Insufficient parameters",
+          data: error.data
         });
-      });
-    }
-    else if (!data.userId && !data.event) {
-      return cb(null, {
-        success: false,
-        msg: "Insufficient parameters",
-        data: data
-      });
-    }
-    else {
-      return cb(null, {
-        success: false,
-        msg: "Something went wrong"
-      });
-    }
+      }
+      else {
+        SentiaGeneral.app.models.SentiaUser.find({
+          where: {
+            userId: data.userId
+          },
+          fields: {
+            college: true
+          }
+        })
+        .then(function (collegeData) {
+          if(!collegeData.length) {
+            return cb(null, {
+              success: true,
+              msg: "No college found"
+            });
+          } else {
+            SentiaGeneral.find({
+              where: {
+                college: collegeData.college
+              }
+            })
+            .then(function (result) {
+              if(!result.length) {
+                return cb(null, {
+                  success: true,
+                  msg: "No participants found"
+                });
+              } else {
+                return cb(null, {
+                  data: result
+                });
+              }
+            })
+            .catch(function (error) {
+              return cb(null, webError);
+            })
+          }
+        })
+        .catch(function (error) {
+          return cb(null, webError)
+        })
+      }
+    });
+    // if (data.userId && data.event) {
+    //   SentiaGeneral.app.models.SentiaUser.findOne({
+    //       where: {
+    //         id: data.userId
+    //       }
+    //     })
+    //     .then(function(userDetails) {
+    //       if (userDetails && userDetails.college) {
+    //         SentiaGeneral.find({
+    //             where: {
+    //               college: userDetails.college,
+    //               event: {
+    //                 neq: null
+    //               }
+    //             }
+    //           })
+    //           .then(function(eventDetails) {
+    //             async.map(eventDetails, function(inputObj, callbackMap) {
+    //               for (var i = 0; i < inputObj.event.length; i++) {
+    //                 if (inputObj.event[i].indexOf(data.event) >= 0) {
+    //                   return callbackMap(null, inputObj);
+    //                 }
+    //               }
+    //               callbackMap(null);
+    //             }, function(error, mapResult) {
+    //               if (error) {
+    //                 log.error(error);
+    //                 return cb(null, {
+    //                   success: false,
+    //                   msg: "Something went wrong 1"
+    //                 });
+    //               } else if (!mapResult.length) {
+    //                 return cb(null, {
+    //                   success: true,
+    //                   msg: "No participants for the event"
+    //                 });
+    //               } else {
+    //                 return cb(null, {
+    //                   success: true,
+    //                   msg: "The participants for the event are",
+    //                   data: _.compact(_.uniq(mapResult))
+    //                 });
+    //               }
+    //             });
+    //           })
+    //           .catch(function(error) {
+    //             return cb(null, {
+    //               success: false,
+    //               msg: "Something went wrong"
+    //             });
+    //           });
+    //       } else {
+    //         return cb(null, {
+    //           success: true,
+    //           msg: "No details found",
+    //           data: {}
+    //         });
+    //       }
+    //     })
+    //     .catch(function(error) {
+    //       log.error(error);
+    //       return cb(null, webError);
+    //     });
+    // } else if (data.userId && !data.event) {
+    //   SentiaGeneral.app.models.SentiaUser.findOne({
+    //       where: {
+    //         id: data.userId
+    //       }
+    //     })
+    //     .then(function(userDetails) {
+    //       if (userDetails && userDetails.college) {
+    //         SentiaGeneral.find({
+    //             where: {
+    //               college: userDetails.college
+    //             }
+    //           })
+    //           .then(function(resultObj) {
+    //             return cb(null, {
+    //               count: resultObj.length,
+    //               info: resultObj
+    //             });
+    //           })
+    //           .catch(function(error) {
+    //             log.error(error);
+    //             return cb(null, webError);
+    //           });
+    //       } else {
+    //         return cb(null, {
+    //           success: true,
+    //           msg: "No details found",
+    //           data: {}
+    //         });
+    //       }
+    //     })
+    //     .catch(function(error) {
+    //       log.error(error);
+    //       return cb(null, webError);
+    //     });
+    // } else if (data.event && !data.userId) {
+    //   SentiaGeneral.find({
+    //       where: {
+    //         event: {
+    //           neq: null
+    //         }
+    //       }
+    //     })
+    //     .then(function(eventDetails) {
+    //       async.map(eventDetails, function(inputObj, callbackMap) {
+    //         for (var i = 0; i < inputObj.event.length; i++) {
+    //           if (inputObj.event[i].indexOf(data.event) >= 0) {
+    //             return callbackMap(null, inputObj);
+    //           }
+    //         }
+    //         callbackMap(null);
+    //       }, function(error, mapResult) {
+    //         if (error) {
+    //           log.error(error);
+    //           return cb(null, {
+    //             success: false,
+    //             msg: "Something went wrong 1"
+    //           });
+    //         } else if (!mapResult.length) {
+    //           return cb(null, {
+    //             success: true,
+    //             msg: "No participants for the event"
+    //           });
+    //         } else {
+    //           return cb(null, {
+    //             success: true,
+    //             msg: "The participants for the event are",
+    //             data: _.compact(_.uniq(mapResult))
+    //           });
+    //         }
+    //       });
+    //     })
+    //     .catch(function(error) {
+    //       return cb(null, {
+    //         success: false,
+    //         msg: "Something went wrong"
+    //       });
+    //     });
+    // } else if (!data.userId && !data.event) {
+    //   return cb(null, {
+    //     success: false,
+    //     msg: "Insufficient parameters",
+    //     data: data
+    //   });
+    // } else {
+    //   return cb(null, {
+    //     success: false,
+    //     msg: "Something went wrong"
+    //   });
+    // }
   }
 
   SentiaGeneral.getGeneralData = function(cb) {

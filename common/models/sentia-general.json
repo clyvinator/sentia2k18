@@ -31,11 +31,14 @@
       "type": "String"
     },
     "event": {
-      "type": ["string"],
+      "type": "String",
       "required": false
     },
     "college": {
       "type": "String"
+    },
+    "Archived": {
+      "type": "Boolean"
     }
   },
   "validations": [],
